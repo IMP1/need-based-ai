@@ -52,7 +52,7 @@ function Action:update(gdt, actor)
     end
 
     if self.finished and self.onfinish then
-        self:onfinish()
+        self:onfinish(actor)
     end
 end
 

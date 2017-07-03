@@ -24,16 +24,18 @@ function Toilet:getAdvertisements()
             utility = {
                 bladder = 100,
             },
-            action = Action.new("toileting", {
-                inertia  = 45,
-                duration = 60 * 5,
-                update = function(action, gdt, actor)
-                    local need = actor.needs.bladder
-                    need:change(-gdt)
-                    need:change(-100 / need.rate * gdt / action.duration)
-                end,
-                object = self
-            }),
+            actions = {
+                Action.new("toileting", {
+                    inertia  = 45,
+                    duration = 60 * 5,
+                    update = function(action, gdt, actor)
+                        local need = actor.needs.bladder
+                        need:change(-gdt)
+                        need:change(-100 / need.rate * gdt / action.duration)
+                    end,
+                    object = self
+                }),
+            }
         },
     }
 end

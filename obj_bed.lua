@@ -24,22 +24,26 @@ function Bed:getAdvertisements()
             utility = {
                 sleep = 100,
             },
-            action = Action.new("sleeping", {
-                inertia  = 60,
-                duration = 60 * 60 * 4,
-                update = function(action, dt, actor)
-                    local need = actor.needs.sleep
-                    need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
-                end,
-                repeatable = true,
-                object = self
-            }),
+            duration = 60 * 60 * 4,
+            actions = {
+                Action.new("sleeping", {
+                    inertia  = 60,
+                    duration = 60 * 60 * 4,
+                    update = function(action, dt, actor)
+                        local need = actor.needs.sleep
+                        need:change(-dt)
+                        need:change(-100 / need.rate * dt / action.duration)
+                    end,
+                    repeatable = true,
+                    object = self
+                }),
+            },
         },
         {
             utility = {
                 sleep = 30,
             },
+            duration = 60 * 45,
             action = Action.new("napping", {
                 inertia  = 60,
                 duration = 60 * 45,

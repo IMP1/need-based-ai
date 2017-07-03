@@ -3,10 +3,10 @@ local Object = {}
 local objects = {}
 
 local function loadObject(filename)
-    print("loaded object:", filename)
     local obj = love.filesystem.load(filename)()
     local name = obj._AUTHOR .. '/' .. obj._NAME
     objects[name] = obj
+    print("loaded object:", filename)
 end
 
 function Object.loadObjects(path, func)

@@ -13,7 +13,7 @@ function Person.new(name, x, y)
     this.needs = {
         sleep = Need.new("sleep", {
             formula = function(need_value)
-                return -10 * ((need_value + 100) / 10) 
+                return -1 * ((need_value + 100) / 10) 
             end
         }),
         hunger = Need.new("hunger", {
@@ -199,7 +199,9 @@ function Person:findBestAction(advertisements)
     end
 
     if best_action then
-        self:queueAction(best_action.action)
+        for _, action in ipairs(best_action.actions) do
+            self:queueAction(action)
+        end
     elseif self.last_action and self.last_action.repeatable then
         self:queueAction(self.last_action)
     else

@@ -24,17 +24,32 @@ function Fridge:getAdvertisements()
             utility = {
                 hunger = 100,
             },
-            action = Action.new("eating", {
-                inertia  = 10,
-                duration = 60 * 15,
-                update = function(action, dt, actor)
-                    local need = actor.needs.hunger
-                    need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
-                end,
-                object = self,
-                position = {self.position[1], self.position[2] + 1}
-            }),
+            duration = 60 * 30,
+            actions = {
+                Action.new("preparing food", {
+                    inertia  = 10,
+                    duration = 60 * 10,
+                    object = self,
+                    position = {self.position[1], self.position[2] + 1}
+                }),
+                Action.new("cooking food", {
+                    inertia  = 10,
+                    duration = 60 * 15,
+                    object = self,
+                    position = {self.position[1], self.position[2] + 1}
+                }),
+                Action.new("eating food", {
+                    inertia  = 10,
+                    duration = 60 * 10,
+                    update = function(action, dt, actor)
+                        local need = actor.needs.hunger
+                        need:change(-dt)
+                        need:change(-100 / need.rate * dt / action.duration)
+                    end,
+                    object = self,
+                    position = {self.position[1], self.position[2] + 1}
+                }),
+            }
         },
     }
 end
