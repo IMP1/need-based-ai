@@ -115,7 +115,7 @@ end
 
 function SceneGame:drawTime()
     local minutes = string.format("%02d", math.floor(self.game_timer / 60) % 60)
-    local hours   = string.format("%02d", math.floor(self.game_timer / 60 / 60) % 60)
+    local hours   = string.format("%02d", math.floor(self.game_timer / 60 / 60) % 24)
     love.graphics.print(hours .. ":" .. minutes, 0, 0)
     if self.paused then
         love.graphics.print("⏸", 64, 0)
