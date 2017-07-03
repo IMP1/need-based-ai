@@ -1,10 +1,12 @@
+local SceneManager = require 'scn_scn_manager'
+
 local Need   = require 'cls_need'
 local Action = require 'cls_action'
 
 local Person = {}
 Person.__index = Person
 
-function Person.new(name)
+function Person.new(name, x, y)
     local this = {}
     setmetatable(this, Person)
     this.name = name
@@ -43,7 +45,8 @@ function Person.new(name)
         duration = 60,
         repeatable = true
     }))
-    this.position = { 120, 240 }
+    this.position = { x or 0, y or 0 }
+    this.move_path = nil
     return this
 end
 
@@ -59,7 +62,7 @@ function Person:queueAction(action)
    table.insert(self.actions, action)
 end
 
-function Person:update(gdt)
+function Person:update(gdt, advertisements)
     -- perform current action
     -- if no action, determine next action
         -- Examine objects around you, and find out what they advertise
@@ -67,9 +70,65 @@ function Person:update(gdt)
         -- pick the best advertisement, get its action sequence
         -- Push the action sequence on your queue
     -- if nothing to do, idle
+    if self.move_path then
+        self:move_along_path(gdt)
+        -- moooove
+    elseif self.current_action then
+        if self.current_action.object and not self.current_action.object:isAt(unpack(self.position)) then
+            -- print("finding move path...")
+            -- local tiles = {}
+            -- for j = 1, 10 do
+            --     for i = 1, 10 do
+            --         table.insert(tiles, {position={i, j}})
+            --     end
+            -- end
+            -- print(unpack(self.position))
+            -- print(unpack(self.current_action.object.position))
+            -- self.move_path = AStar.path(self, self.current_action.object, tiles, true)
+            -- print(self.move_path)
+            -- for k, v in pairs(self.move_path) do
+            --     print(k, v.name, unpack(v.position))
+            -- end
 
-    if self.current_action then
-        self.current_action:update(gdt)
+
+            -- Usage Example
+            -- First, set a collision map
+            local map = {
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+            }
+            -- Value for walkable tiles
+            local walkable = 0
+
+            -- Library setup
+            local Grid = require ("jumper.grid") -- The grid class
+            local Pathfinder = require ("jumper.pathfinder") -- The pathfinder lass
+
+            -- Creates a grid object
+            local grid = Grid(map) 
+            -- Creates a pathfinder object using Jump Point Search
+            local myFinder = Pathfinder(grid, 'ASTAR', walkable) 
+
+            -- Define start and goal locations coordinates
+            local startx, starty = unpack(self.position)
+            local end_position = self.current_action.position or self.current_action.object.position
+            local endx, endy = unpack(end_position)
+
+            -- Calculates the path, and its length
+            self.move_path = myFinder:getPath(startx, starty, endx, endy)
+            table.remove(self.move_path._nodes, 1)
+        end
+
+        self.current_action:update(gdt, self)
         if self.current_action.finished then
             self.last_action = self.current_action
             self.current_action = nil
@@ -78,7 +137,7 @@ function Person:update(gdt)
         self.current_action = table.remove(self.actions, 1)
         self.current_action:start()
     else
-        self:findBestAction()
+        self:findBestAction(advertisements)
     end
 
     -- need satisfaction
@@ -89,83 +148,49 @@ function Person:update(gdt)
 
 end
 
-function Person:getAdvertisments()
-    -- TODO: not have this hard-coded. Get these from the world.
-    return {
-        {
-            object = "bed", -- TODO: make this reference to game object
-            utility = {
-                sleep = 100,
-            },
-            action = Action.new("sleeping", {
-                inertia  = 60,
-                duration = 60 * 60 * 4,
-                update = function(action, dt)
-                    local need = self.needs.sleep
-                    need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
-                end
-            }),
-        },
-        {
-            object = "fridge", -- TODO: make this reference to game object
-            utility = {
-                hunger = 100,
-            },
-            action = Action.new("eating", {
-                inertia  = 10,
-                duration = 60 * 15,
-                update = function(action, dt)
-                    local need = self.needs.hunger
-                    need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
-                end
-            }),
-        },
-        {
-            object = "toilet", -- TODO: make this reference to game object
-            utility = {
-                bladder = 100,
-            },
-            action = Action.new("toileting", {
-                inertia  = 45,
-                duration = 60 * 5,
-                update = function(action, dt)
-                    local need = self.needs.bladder
-                    need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
-                end
-            }),
-        },
-        {
-            object = "TV", -- TODO: make this reference to game object
-            utility = {
-                fun = 100,
-            },
-            action = Action.new("watching TV", {
-                inertia  = 0,
-                duration = 60 * 10,
-                update = function(action, dt)
-                    local need = self.needs.fun
-                    need:change(-dt)
-                    need:change(-10 / need.rate * dt / action.duration)
-                end,
-                repeatable = true,
-            }),
-        },
-    }
+function Person:move_along_path(gdt)
+    if not self.move_path then return end
+    local x, y = unpack(self.position)
+    local current_target = self.move_path._nodes[1]
+    local x1, y1 = current_target:getX(), current_target:getY()
+
+    local dx = (x1 - x) / math.abs(x1 - x)
+    local dy = (y1 - y) / math.abs(y1 - y)
+    local move_speed = 0.1
+
+    local newX = x + dx * gdt * move_speed
+    local newY = y + dy * gdt * move_speed
+
+    local oldDist = math.abs(x1 - x) + math.abs(y1 - y)
+    local newDist = math.abs(x1 - newX) + math.abs(y1 - newY)
+    if newDist < oldDist then
+        self.position[1] = newX
+        self.position[2] = newY
+        if newDist < 0.1 then
+            self.position = {x1, y1}
+            table.remove(self.move_path._nodes, 1)
+            if #self.move_path._nodes == 0 then
+                self.move_path = nil
+            end
+        end
+    else
+        self.position = {x1, y1}
+        table.remove(self.move_path._nodes, 1)
+        if #self.move_path._nodes == 0 then
+            self.move_path = nil
+        end
+    end
 end
 
-function Person:findBestAction()
+function Person:findBestAction(advertisements)
     local best_happiness_increase = 0.0001
     local best_action = nil
-    for _, action in pairs(self:getAdvertisments()) do
+    for _, action in pairs(advertisements) do
         local happiness_increase = 0
         for need_name, satisfaction in pairs(action.utility) do
             local need = self.needs[need_name]
             local need_after_action = math.max(0, need.value - satisfaction)
             happiness_increase = happiness_increase + need.formula(need_after_action) - need.formula(need.value)
-            print(need_name, need.formula(need_after_action) - need.formula(need.value))
         end
         if happiness_increase > best_happiness_increase then
             best_happiness_increase = happiness_increase
@@ -173,22 +198,20 @@ function Person:findBestAction()
         end
     end
 
-    if best_action == nil then
-        if self.last_action and self.last_action.repeatable then
-            self:queueAction(self.last_action)
-        else
-            self:queueAction(Action.new("idling", {
-                duration = 60
-            }))
-        end
-        return
+    if best_action then
+        self:queueAction(best_action.action)
+    elseif self.last_action and self.last_action.repeatable then
+        self:queueAction(self.last_action)
+    else
+        self:queueAction(Action.new("idling", {
+            duration = 60
+        }))
     end
-
-    self:queueAction(best_action.action)
 end
 
 function Person:draw()
-    local x, y = unpack(self.position)
+    local i, j = unpack(self.position)
+    local x, y = (i-0.5) * 32, (j-0.5) * 32
     love.graphics.circle("fill", x, y, 16)
     if self.current_action then
         love.graphics.print(self.current_action.name, x - 16, y - 32)
@@ -196,6 +219,18 @@ function Person:draw()
         local r2 = 2 * math.pi * self.current_action:progress() - math.pi / 2
         love.graphics.circle("line", x, y - 42, 6)
         love.graphics.arc("fill", x, y - 42, 6, r1, r2)
+    end
+    if self.move_path and self.move_path._nodes[1] then
+        local node1 = self.move_path._nodes[1]
+        local x1, y1 = node1:getX() - 0.5, node1:getY() - 0.5
+        love.graphics.line(x, y, x1 * 32, y1 * 32)
+        for i = 1, #self.move_path._nodes - 1 do
+            local node1 = self.move_path._nodes[i]
+            local x1, y1 = node1:getX() - 0.5, node1:getY() - 0.5
+            local node2 = self.move_path._nodes[i+1]
+            local x2, y2 = node2:getX() - 0.5, node2:getY() - 0.5
+            love.graphics.line(x1 * 32, y1 * 32, x2 * 32, y2 * 32)
+        end
     end
 end
 

@@ -11,6 +11,8 @@ function Action.new(name, options)
     this.inertia       = options.inertia    or 0 -- time it takes to stop the action
     this.duration      = options.duration   or 0
     this.onupdate      = options.update     or nil
+    this.object        = options.object     or nil
+    this.position      = options.position   or nil
     this.repeatable    = options.repeatable
     if this.repeatable == nil then 
         this.repeatable = false 
@@ -33,7 +35,7 @@ function Action:start()
     self.paused   = false
 end
 
-function Action:update(gdt)
+function Action:update(gdt, actor)
     if not self.started then return end
     if self.finished then return end
     if self.paused then return end
@@ -45,7 +47,7 @@ function Action:update(gdt)
     end
 
     if self.onupdate then
-        self:onupdate(gdt)
+        self:onupdate(gdt, actor)
     end
 end
 

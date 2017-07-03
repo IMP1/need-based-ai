@@ -1,10 +1,16 @@
+-- http://gameai.com/wiki/index.php?title=The_Sims
+-- http://www.zubek.net/robert/publications/Needs-based-AI-draft.pdf
+-- https://www.reddit.com/r/gamedev/comments/2dzp8l/decisionmaking_ai_in_the_sims/
+
 -------------
 -- Classes --
 -------------
-local SceneManager = require 'scn_scn_manager'
-local SceneGame = require 'scn_game'
+local SceneManager  = require 'scn_scn_manager'
+local SceneGame     = require 'scn_game'
+local ObjectManager = require 'cls_object_manager'
 
 function love.load()
+    ObjectManager.loadObjects()
     local scene = SceneGame.new()
     SceneManager.setScene(scene)
 end
