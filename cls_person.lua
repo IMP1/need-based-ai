@@ -30,6 +30,11 @@ function Person.new(name)
             end,
             rate = 0,
         }),
+        fun = Need.new("fun", {
+            formula = function(need_value)
+                return -10 * ((need_value + 100) / 10)
+            end
+        }),
     }
     this.actions = {}
     this.last_action = nil
@@ -130,6 +135,22 @@ function Person:getAdvertisments()
                     need:change(-dt)
                     need:change(-100 / need.rate * dt / action.duration)
                 end
+            }),
+        },
+        {
+            object = "TV", -- TODO: make this reference to game object
+            utility = {
+                fun = 100,
+            },
+            action = Action.new("watching TV", {
+                inertia  = 0,
+                duration = 60 * 10,
+                update = function(action, dt)
+                    local need = self.needs.fun
+                    need:change(-dt)
+                    need:change(-10 / need.rate * dt / action.duration)
+                end,
+                repeatable = true,
             }),
         },
     }
