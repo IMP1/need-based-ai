@@ -1,12 +1,12 @@
 local Scene = {}
 Scene.__index = Scene
 function Scene:__tostring()
-    return "Scene " .. self._name
+    return "Scene " .. self.name
 end
 
 function Scene.new(name)
     local this = {}
-    this._name = name
+    this.name = name
     return this
 end
 
@@ -18,7 +18,7 @@ function Scene:keypressed(key, isRepeat)
 
 end
 
-function Scene:textinput(text)
+function Scene:keytyped(text)
 
 end
 
