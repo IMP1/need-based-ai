@@ -25,8 +25,9 @@ function Fridge.new(x, y)
 end
 
 function Fridge:getAdvertisements(actor, other_objects)
-    local counter = actor:findNearestObject(other_objects, "counter")
-    local cooker  = actor:findNearestObject(other_objects, "cooker")
+    local counter = actor:findNearestObject(other_objects, "counter", self)
+    local cooker  = actor:findNearestObject(other_objects, "cooker", self)
+    local non_existant = actor:findNearestObject(other_objects, "foobar", counter)
     -- TODO: get nearest counter/table
     -- TODO: get nearest cooker
     -- TODO: get nearest table
@@ -64,8 +65,8 @@ function Fridge:getAdvertisements(actor, other_objects)
                         need:change(-dt)
                         need:change(-100 / need.rate * dt / action.duration)
                     end,
-                    object = counter,
-                    position = counter:usagePosition("table")
+                    object = non_existant,
+                    position = non_existant:usagePosition("table")
                 }),
             }
         },

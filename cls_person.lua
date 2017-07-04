@@ -179,7 +179,7 @@ function Person:findBestAction(nearby_objects)
     end
 end
 
-function Person:findNearestObject(objects, object_type)
+function Person:findNearestObject(objects, object_type, default)
     local shortest_distance = math.huge
     local nearest_object = nil
 
@@ -194,7 +194,13 @@ function Person:findNearestObject(objects, object_type)
         end
     end
 
-    return nearest_object
+    if nearest_object then 
+        return nearest_object
+    elseif default then
+        return default
+    else
+        return nil
+    end
 end
 
 function Person:draw()
