@@ -1,5 +1,6 @@
 local SceneManager = require 'scn_scn_manager'
 
+local Pathfinder = require 'jumper.pathfinder' -- For pathfinding
 local Need   = require 'cls_need'
 local Action = require 'cls_action'
 
@@ -62,7 +63,7 @@ function Person:queueAction(action)
    table.insert(self.actions, action)
 end
 
-function Person:update(gdt, advertisements)
+function Person:update(gdt, map, nearby_objects)
     -- perform current action
     -- if no action, determine next action
         -- Examine objects around you, and find out what they advertise
@@ -75,48 +76,7 @@ function Person:update(gdt, advertisements)
         -- moooove
     elseif self.current_action then
         if self.current_action.object and not self.current_action.object:isAt(unpack(self.position)) then
-            -- print("finding move path...")
-            -- local tiles = {}
-            -- for j = 1, 10 do
-            --     for i = 1, 10 do
-            --         table.insert(tiles, {position={i, j}})
-            --     end
-            -- end
-            -- print(unpack(self.position))
-            -- print(unpack(self.current_action.object.position))
-            -- self.move_path = AStar.path(self, self.current_action.object, tiles, true)
-            -- print(self.move_path)
-            -- for k, v in pairs(self.move_path) do
-            --     print(k, v.name, unpack(v.position))
-            -- end
-
-
-            -- Usage Example
-            -- First, set a collision map
-            local map = {
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                {0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            }
-            -- Value for walkable tiles
-            local walkable = 0
-
-            -- Library setup
-            local Grid = require ("jumper.grid") -- The grid class
-            local Pathfinder = require ("jumper.pathfinder") -- The pathfinder lass
-
-            -- Creates a grid object
-            local grid = Grid(map) 
-            -- Creates a pathfinder object using Jump Point Search
-            local myFinder = Pathfinder(grid, 'ASTAR', walkable) 
+            local myFinder = Pathfinder(map.grid, 'ASTAR', map.walkable) 
 
             -- Define start and goal locations coordinates
             local startx, starty = unpack(self.position)
@@ -137,7 +97,7 @@ function Person:update(gdt, advertisements)
         self.current_action = table.remove(self.actions, 1)
         self.current_action:start()
     else
-        self:findBestAction(advertisements)
+        self:findBestAction(nearby_objects)
     end
 
     -- need satisfaction
@@ -166,7 +126,8 @@ function Person:move_along_path(gdt)
     if newDist < oldDist then
         self.position[1] = newX
         self.position[2] = newY
-        if newDist < 0.1 then
+        if newDist < 0.00001 then
+            print(newDist)
             self.position = {x1, y1}
             table.remove(self.move_path._nodes, 1)
             if #self.move_path._nodes == 0 then
@@ -182,7 +143,14 @@ function Person:move_along_path(gdt)
     end
 end
 
-function Person:findBestAction(advertisements)
+function Person:findBestAction(nearby_objects)
+    local advertisements = {}
+    for _, object in pairs(nearby_objects) do
+        for _, advert in pairs(object:getAdvertisements(self, nearby_objects)) do
+            table.insert(advertisements, advert)
+        end
+    end
+
     local best_happiness_increase = 0.0001
     local best_action = nil
     for _, action in pairs(advertisements) do
@@ -209,6 +177,24 @@ function Person:findBestAction(advertisements)
             duration = 60
         }))
     end
+end
+
+function Person:findNearestObject(objects, object_type)
+    local shortest_distance = math.huge
+    local nearest_object = nil
+
+    for _, object in pairs(objects) do
+        if object:isType(object_type) then
+            local distance = math.abs(object.position[1] - self.position[1]) + 
+                             math.abs(object.position[2] - self.position[2])
+            if distance < shortest_distance then
+                shortest_distance = distance
+                nearest_object = object
+            end
+        end
+    end
+
+    return nearest_object
 end
 
 function Person:draw()

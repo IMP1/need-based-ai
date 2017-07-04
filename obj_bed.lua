@@ -13,12 +13,15 @@ setmetatable(Bed, Object)
 Bed.__index = Bed
 
 function Bed.new(x, y)
-    local this = Object.new("bed", x, y)
+    local this = Object.new("bed", {
+        position = {x, y},
+    })
+    this.categories = {"bed"}
     setmetatable(this, Bed)
     return this
 end
 
-function Bed:getAdvertisements()
+function Bed:getAdvertisements(actor)
     return {
         {
             utility = {

@@ -6,6 +6,7 @@ local GAME_TIMER_SPEEDS = { 1, 60, 600, 3600 }
 -------------
 -- Classes --
 -------------
+local Grid          = require 'jumper.grid' -- For pathfinding
 local SceneBase     = require 'scn_base'
 local Action        = require 'cls_action'
 local Person        = require 'cls_person'
@@ -30,10 +31,31 @@ function SceneGame:load()
         Person.new("Person #1", 7, 5)
     }
     self.objects = {
-        ObjectManager.new("Huw Taylor/Simple Bed", 4, 4),
-        ObjectManager.new("Huw Taylor/Toilet", 6, 8),
+        ObjectManager.new("Huw Taylor/Simple Bed", 3, 2),
+        ObjectManager.new("Huw Taylor/Toilet", 6, 10),
         ObjectManager.new("Huw Taylor/Simple Fridge", 9, 2),
+        ObjectManager.new("Huw Taylor/Table", 11, 6),
+        ObjectManager.new("Huw Taylor/Oven", 11, 2),
     }
+    self.map = {
+        map = {
+            {1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+            {1,0,0,0,0,1,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,1,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,1,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,1,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,1,0,0,0,0,0,0,0,1},
+            {1,1,1,0,1,1,1,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1,0,0,0,0,0,0,1},
+            {1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+        },
+        walkable = 0,
+    }
+    self.map.grid = Grid(self.map.map)
 end
 
 function SceneGame:keypressed(key, isRepeat)
@@ -51,56 +73,33 @@ function SceneGame:keypressed(key, isRepeat)
     end
 end
 
-function SceneGame:getAdvertisments()
-    -- TODO: not have this hard-coded. Get these from the world.
-    return {
-        {
-            object = "TV", -- TODO: make this reference to game object
-            utility = {
-                fun = 100,
-            },
-            action = Action.new("watching TV", {
-                inertia  = 0,
-                duration = 60 * 10,
-                update = function(action, dt, actor)
-                    local need = actor.needs.fun
-                    need:change(-dt)
-                    need:change(-10 / need.rate * dt / action.duration)
-                end,
-                repeatable = true,
-            }),
-        },
-    }
-end
-
-
-
 function SceneGame:update(dt, mx, my)
     if self.paused then return end
 
     local gdt = dt * GAME_TIMER_SPEEDS[self.game_timer_speed]
     self.game_timer = self.game_timer + gdt
 
-    local options = {}
-
     for _, o in pairs(self.objects) do
         o:update(gdt)
-        for i, advert in pairs(o:getAdvertisements()) do
-            table.insert(options, advert)
-        end
     end
 
     for _, p in pairs(self.people) do
-        p:update(gdt, options)
+        p:update(gdt, self.map, self.objects)
     end
 end
 
 function SceneGame:draw()
     love.graphics.setColor(128, 192, 255, 32)
-    for i = 1, 32 do
-        local x = i * 32
-        love.graphics.line(x, 0, x, love.graphics.getHeight())
-        love.graphics.line(0, x, love.graphics.getWidth(), x)
+    for j, row in pairs(self.map.map) do
+        for i, tile in pairs(row) do
+            local mode = "line"
+            local colour = {128, 192, 255, 32}
+            if tile == 1 then
+                mode = "fill"
+            end
+            love.graphics.setColor(unpack(colour))
+            love.graphics.rectangle(mode, (i-1) * 32, (j-1) * 32, 32, 32)
+        end
     end
     love.graphics.setColor(255, 255, 255)
     for _, o in pairs(self.objects) do

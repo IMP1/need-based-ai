@@ -13,12 +13,15 @@ setmetatable(Toilet, Object)
 Toilet.__index = Toilet
 
 function Toilet.new(x, y)
-    local this = Object.new("toilet", x, y)
+    local this = Object.new("toilet", {
+        position = {x, y},
+    })
+    table.insert(this.categories, "toilet")
     setmetatable(this, Toilet)
     return this
 end
 
-function Toilet:getAdvertisements()
+function Toilet:getAdvertisements(actor)
     return {
         {
             utility = {
