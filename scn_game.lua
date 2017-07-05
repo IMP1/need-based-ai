@@ -108,18 +108,20 @@ function SceneGame:draw()
     for _, p in pairs(self.people) do
         p:draw()
     end
+    self.people[1]:drawActionQueue()
     self.people[1]:drawInfo()
     self:drawTime()
 end
 
 function SceneGame:drawTime()
+    local y = love.graphics.getHeight() - 64
     local minutes = string.format("%02d", math.floor(self.game_timer / 60) % 60)
     local hours   = string.format("%02d", math.floor(self.game_timer / 60 / 60) % 24)
-    love.graphics.print(hours .. ":" .. minutes, 0, 0)
+    love.graphics.print(hours .. ":" .. minutes, 0, y)
     if self.paused then
-        love.graphics.print("⏸", 64, 0)
+        love.graphics.print("⏸", 64, y)
     else
-        love.graphics.print(string.rep("▶",self.game_timer_speed), 64, 0)
+        love.graphics.print(string.rep("▶",self.game_timer_speed), 64, y)
     end
 end
 

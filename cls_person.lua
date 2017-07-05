@@ -14,28 +14,28 @@ function Person.new(name, x, y)
     this.needs = {
         sleep = Need.new("sleep", {
             formula = function(need_value)
-                return -1 * ((need_value + 100) / 10) 
+                return -1 * math.max(0, (need_value - 100)) / 10
             end
         }),
         hunger = Need.new("hunger", {
             formula = function(need_value)
-                return -10 * (((need_value + 100) / 10) ^ 2)
+                return -1 * (need_value^ 2) / 10
             end
         }),
         bladder = Need.new("bladder", {
             formula = function(need_value)
-                return -1 * (((need_value + 100) / 10) ^ 2)
+                return -1 * (need_value ^ 2) / 100
             end
         }),
         health = Need.new("health", {
             formula = function(need_value)
-                return -10 * ((need_value / 10) ^ 2)
+                return -1 * (need_value ^ 2) / 10
             end,
             rate = 0,
         }),
         fun = Need.new("fun", {
             formula = function(need_value)
-                return -10 * ((need_value + 100) / 10)
+                return -10 * math.max(0, (need_value - 100)) / 10
             end
         }),
     }
@@ -54,7 +54,7 @@ end
 function Person:totalHappiness()
     local happiness = 0
     for _, n in pairs(self.needs) do
-        happiness = happiness + n.formula(n.value)
+        happiness = happiness + 0, n.formula(n.value)
     end
     return happiness
 end
@@ -72,7 +72,7 @@ function Person:update(gdt, map, nearby_objects)
         -- Push the action sequence on your queue
     -- if nothing to do, idle
     if self.move_path then
-        self:move_along_path(gdt)
+        self:moveAlongPath(gdt)
         -- moooove
     elseif self.current_action then
         if self.current_action.object and not self.current_action.object:isAt(unpack(self.position)) then
@@ -108,7 +108,7 @@ function Person:update(gdt, map, nearby_objects)
 
 end
 
-function Person:move_along_path(gdt)
+function Person:moveAlongPath(gdt)
     if not self.move_path then return end
     local x, y = unpack(self.position)
     local current_target = self.move_path._nodes[1]
@@ -207,13 +207,6 @@ function Person:draw()
     local i, j = unpack(self.position)
     local x, y = (i-0.5) * 32, (j-0.5) * 32
     love.graphics.circle("fill", x, y, 16)
-    if self.current_action then
-        love.graphics.print(self.current_action.name, x - 16, y - 32)
-        local r1 = -math.pi / 2
-        local r2 = 2 * math.pi * self.current_action:progress() - math.pi / 2
-        love.graphics.circle("line", x, y - 42, 6)
-        love.graphics.arc("fill", x, y - 42, 6, r1, r2)
-    end
     if self.move_path and self.move_path._nodes[1] then
         local node1 = self.move_path._nodes[1]
         local x1, y1 = node1:getX() - 0.5, node1:getY() - 0.5
@@ -228,9 +221,32 @@ function Person:draw()
     end
 end
 
-function Person:drawInfo()
-    local x = 316
+function Person:drawActionQueue()
+    local x = love.graphics.getWidth() - 16
     local y = 16
+    if self.current_action then
+        local text = self.current_action.name
+        local w = love.graphics.getFont():getWidth(text)
+        love.graphics.rectangle("line", x - w, y, w + 4, 20)
+        love.graphics.print(text, x - w + 2, y + 2)
+        local r1 = -math.pi / 2
+        local r2 = 2 * math.pi * self.current_action:progress() - math.pi / 2
+        love.graphics.circle("line", x - w - 12, y + 10, 6)
+        love.graphics.arc(   "fill", x - w - 12, y + 10, 6, r1, r2)
+        y = y + 24
+    end
+    for _, action in pairs(self.actions) do
+        local text = action.name
+        local w = love.graphics.getFont():getWidth(text)
+        love.graphics.rectangle("line", x - w, y, w + 4, 20)
+        love.graphics.print(text, x - w + 2, y + 2)
+        y = y + 24
+    end
+end
+
+function Person:drawInfo()
+    local x = 360
+    local y = 448
     for _, need in pairs(self.needs) do
         love.graphics.print(need.name, x, y)
         love.graphics.print(need.value, x + 64, y)

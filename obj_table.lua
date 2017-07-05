@@ -39,16 +39,16 @@ function Table:getAdvertisements(actor)
     return {
         {
             utility = {
-                fun = 100,
+                fun = 50,
             },
             actions = {
                 Action.new("sitting", {
                     inertia  = 45,
                     duration = 60 * 5,
                     update = function(action, gdt, actor)
-                        local need = actor.needs.bladder
+                        local need = actor.needs.fun
                         need:change(-gdt)
-                        need:change(-100 / need.rate * gdt / action.duration)
+                        need:change(-50 / need.rate * gdt / action.duration)
                     end,
                     object = self,
                     position = self:usagePosition("table")
