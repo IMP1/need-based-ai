@@ -32,7 +32,7 @@ end
 function Object:update(gdt)
 end
 
-function Object:getAdvertisements(actor)
+function Object:getAdvertisements(actor, other_objects)
     return {}
 end
 
