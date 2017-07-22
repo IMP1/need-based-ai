@@ -5,6 +5,7 @@ local Need   = require 'cls_need'
 local Action = require 'cls_action'
 
 local Person = {}
+setmetatable(Person, Object)
 Person.__index = Person
 
 function Person.new(name, x, y)
@@ -72,6 +73,8 @@ function Person:update(gdt, map, nearby_objects)
         -- Push the action sequence on your queue
     -- if nothing to do, idle
     if self.move_path then
+        print(self.name)
+        print("path length", #self.move_path._nodes)
         self:moveAlongPath(gdt)
         -- moooove
     elseif self.current_action then
@@ -86,12 +89,18 @@ function Person:update(gdt, map, nearby_objects)
             -- Calculates the path, and its length
             self.move_path = myFinder:getPath(startx, starty, endx, endy)
             table.remove(self.move_path._nodes, 1)
-        end
-
-        self.current_action:update(gdt, self)
-        if self.current_action.finished then
-            self.last_action = self.current_action
-            self.current_action = nil
+            if self.move_path then
+                for i, n in pairs(self.move_path._nodes) do
+                    print(i, n, n:getX(), n:getY())
+                end
+            end
+            print("path length", #self.move_path._nodes)
+        else
+            self.current_action:update(gdt, self)
+            if self.current_action.finished then
+                self.last_action = self.current_action
+                self.current_action = nil
+            end
         end
     elseif #self.actions > 0 then
         self.current_action = table.remove(self.actions, 1)
@@ -111,7 +120,16 @@ end
 function Person:moveAlongPath(gdt)
     if not self.move_path then return end
     local x, y = unpack(self.position)
+    if self.move_path then
+        for i, n in pairs(self.move_path._nodes) do
+            print(i, n, n:getX(), n:getY())
+        end
+    end
     local current_target = self.move_path._nodes[1]
+    print("current_target", current_target)
+    print("move path", self.move_path)
+    print("move path nodes", self.move_path._nodes)
+    print("move path node #1", self.move_path._nodes[1])
     local x1, y1 = current_target:getX(), current_target:getY()
 
     local dx = (x1 - x) / math.abs(x1 - x)
