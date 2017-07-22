@@ -12,11 +12,11 @@ function Need.new(name, options, start_value)
 end
 
 function Need:increase(gdt)
-    self:change(gdt)
+    self:change(gdt * self.rate)
 end
 
 function Need:change(dv)
-    self.value = math.max(0, self.value + dv * self.rate)
+    self.value = math.max(0, self.value + dv)
     -- self.value = math.min(self.value, 100)
 end
 

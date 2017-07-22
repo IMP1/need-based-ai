@@ -48,7 +48,7 @@ function Table:getAdvertisements(actor)
                     update = function(action, gdt, actor)
                         local need = actor.needs.fun
                         need:change(-gdt)
-                        need:change(-50 / need.rate * gdt / action.duration)
+                        need:change(-50 * gdt / action.duration)
                     end,
                     object = self,
                     position = self:usagePosition("table")

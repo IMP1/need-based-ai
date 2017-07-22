@@ -59,7 +59,7 @@ function Fridge:getAdvertisements(actor, other_objects)
                 update = function(action, dt, actor)
                     local need = actor.needs.hunger
                     need:change(-dt)
-                    need:change(-100 / need.rate * dt / action.duration)
+                    need:change(-100 * dt / action.duration)
                 end,
                 object = dining_table,
                 position = dining_table:usagePosition("table")
@@ -71,9 +71,9 @@ function Fridge:getAdvertisements(actor, other_objects)
                 update = function(action, dt, actor)
                     local hunger_need = actor.needs.hunger
                     hunger_need:change(-dt)
-                    hunger_need:change(-100 / hunger_need.rate * dt / action.duration)
+                    hunger_need:change(-100 * dt / action.duration)
                     local toilet_need = actor.needs.bladder
-                    toilet_need:change(30 / toilet_need.rate * dt / action.duration)
+                    toilet_need:change(30 * dt / action.duration)
                 end,
                 object = nil
             }))
