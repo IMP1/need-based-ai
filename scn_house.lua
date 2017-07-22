@@ -17,8 +17,8 @@ local SceneGame = {}
 setmetatable(SceneGame, SceneBase )
 SceneGame.__index = SceneGame
 
-function SceneGame.new(address, port)
-    local this = SceneBase.new("game")
+function SceneGame.new()
+    local this = SceneBase.new("house")
     setmetatable(this, SceneGame)
     return this
 end

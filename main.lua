@@ -6,17 +6,26 @@
 -- Classes --
 -------------
 local SceneManager  = require 'scn_scn_manager'
-local SceneGame     = require 'scn_game'
+local SceneHouse    = require 'scn_house'
+local SceneArena    = require 'scn_arena'
 local ObjectManager = require 'cls_object_manager'
 
 function love.load()
     ObjectManager.loadObjects()
-    local scene = SceneGame.new()
+    local scene = SceneHouse.new()
     SceneManager.setScene(scene)
 end
 
 function love.keypressed(key, isRepeat)
     SceneManager.scene():keypressed(key, isRepeat)
+    if key == "f1" and SceneManager:scene().name ~= "house" then
+        local scene = SceneHouse.new()
+        SceneManager.setScene(scene)
+    end
+    if key == "f2" and SceneManager:scene().name ~= "arena" then
+        local scene = SceneArena.new()
+        SceneManager.setScene(scene)
+    end
 end
 
 function love.textinput(text)
